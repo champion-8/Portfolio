@@ -153,7 +153,7 @@ export default function PortfolioCompositionChart({ portfolio, mode = 'type' }: 
 
   return (
     <div className="w-full">
-      <ResponsiveContainer width="100%" height={170}>
+      <ResponsiveContainer width="100%" height={210}>
         <PieChart>
           <Pie
             data={chartData}

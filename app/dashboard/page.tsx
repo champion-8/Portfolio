@@ -373,7 +373,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">{t.totalValue}</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs sm:text-xl font-bold text-gray-900">
                   ฿{summary.totalValue.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
@@ -388,7 +388,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">{t.totalCost}</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs sm:text-xl font-bold text-gray-900">
                   ฿{summary.totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
@@ -408,7 +408,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">{t.profitLoss}</p>
-                <p className={`text-xl font-bold ${
+                <p className={`text-xs sm:text-xl font-bold ${
                   summary.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {summary.totalProfit >= 0 ? '+' : ''}฿{summary.totalProfit.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -430,7 +430,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">{t.percentage}</p>
-                <p className={`text-xl font-bold ${
+                <p className={`text-xs sm:text-xl font-bold ${
                   summary.totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {summary.totalProfitPercent >= 0 ? '+' : ''}{summary.totalProfitPercent.toFixed(2)}%
