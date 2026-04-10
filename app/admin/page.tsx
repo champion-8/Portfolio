@@ -305,7 +305,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
         <div className="space-y-8">
           
           {/* Fund Section */}

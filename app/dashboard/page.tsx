@@ -361,10 +361,10 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content - Clean White Space */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-3 space-y-3">
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5 space-y-3">
         
         {/* Summary Cards - Compact Design */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Value */}
           <div className="card-1 p-5 hover:scale-[1.01] transform transition-all duration-300">
             <div className="flex flex-col gap-3">

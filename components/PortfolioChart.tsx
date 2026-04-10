@@ -68,7 +68,7 @@ export default function PortfolioChart({ totalValue, totalCost }: Omit<Portfolio
   };
 
   return (
-    <div className="w-full h-64">
+    <div className="w-full h-40 sm:h-50">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={chartData}

@@ -259,7 +259,7 @@ export default function ProfilePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
         {message && (
           <div
             className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${

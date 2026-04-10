@@ -144,7 +144,7 @@ export default function PortfolioCompositionChart({ portfolio, mode = 'type' }: 
 
   if (portfolio.length === 0) {
     return (
-      <div className="w-full h-64 flex flex-col items-center justify-center text-text-secondary">
+      <div className="w-full h-40 flex flex-col items-center justify-center text-text-secondary">
         <Icon icon="solar:pie-chart-bold-duotone" className="w-12 h-12 mb-2 text-purple-300" />
         <p className="text-sm">No data to display</p>
       </div>
@@ -153,7 +153,7 @@ export default function PortfolioCompositionChart({ portfolio, mode = 'type' }: 
 
   return (
     <div className="w-full">
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={170}>
         <PieChart>
           <Pie
             data={chartData}
@@ -161,8 +161,8 @@ export default function PortfolioCompositionChart({ portfolio, mode = 'type' }: 
             cy="50%"
             labelLine={false}
             label={({ percent }: any) => `${(percent * 100).toFixed(1)}%`}
-            outerRadius={100}
-            innerRadius={60}
+            outerRadius={60}
+            innerRadius={30}
             fill="#8884d8"
             dataKey="value"
             paddingAngle={2}
@@ -177,9 +177,9 @@ export default function PortfolioCompositionChart({ portfolio, mode = 'type' }: 
       </ResponsiveContainer>
       
       {/* Total Value Display */}
-      <div className="mt-4 text-center">
+      <div className="mt-1 text-center">
         <p className="text-xs text-text-secondary">Total Portfolio Value</p>
-        <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+        <p className="text-md font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
           ฿{totalValue.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
       </div>
