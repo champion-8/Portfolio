@@ -160,7 +160,7 @@ export default function PortfolioCompositionChart({ portfolio, mode = 'type' }: 
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ percentage }) => `${percentage}%`}
+            label={({ percent }: any) => `${(percent * 100).toFixed(1)}%`}
             outerRadius={100}
             innerRadius={60}
             fill="#8884d8"

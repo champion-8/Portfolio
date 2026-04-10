@@ -80,9 +80,10 @@ export async function GET(request: NextRequest) {
       totalCost: enrichedPortfolio.reduce((sum, item) => sum + item.totalCost, 0),
       totalValue: enrichedPortfolio.reduce((sum, item) => sum + item.currentValue, 0),
       totalProfit: enrichedPortfolio.reduce((sum, item) => sum + item.profit, 0),
+      totalProfitPercent: 0,
     };
 
-    summary['totalProfitPercent'] = summary.totalCost > 0 
+    summary.totalProfitPercent = summary.totalCost > 0 
       ? (summary.totalProfit / summary.totalCost) * 100 
       : 0;
 

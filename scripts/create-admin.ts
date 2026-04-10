@@ -1,6 +1,6 @@
-import { db } from './lib/db/index.js';
-import { users } from './lib/db/schema.js';
-import { hashPassword } from './lib/auth.js';
+import { db } from '../lib/db/index.js';
+import { users } from '../lib/db/schema.js';
+import { hashPassword } from '../lib/auth.js';
 
 async function createAdminUser() {
   try {
