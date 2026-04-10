@@ -56,6 +56,8 @@ export default function DashboardPage() {
   const [sortField, setSortField] = useState<keyof PortfolioItem | 'none'>('none');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [language, setLanguage] = useState<'th' | 'en'>('en');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
 
   // Translations
   const t = {
@@ -77,6 +79,14 @@ export default function DashboardPage() {
     addAsset: language === 'th' ? 'เพิ่มสินทรัพย์' : 'Add Asset',
     sortBy: language === 'th' ? 'เรียงตาม:' : 'Sort by:',
     loading: language === 'th' ? 'กำลังโหลด...' : 'Loading...',
+    sortDefault: language === 'th' ? 'ค่าเริ่มต้น' : 'Default',
+    sortName: language === 'th' ? 'ชื่อ' : 'Name',
+    sortType: language === 'th' ? 'ประเภท' : 'Type',
+    sortValue: language === 'th' ? 'มูลค่า' : 'Value',
+    sortProfit: language === 'th' ? 'กำไร/ขาดทุน' : 'Profit/Loss',
+    sortProfitPercent: language === 'th' ? 'กำไร %' : 'P/L %',
+    sortQuantity: language === 'th' ? 'จำนวน' : 'Quantity',
+    sortCurrentPrice: language === 'th' ? 'ราคาปัจจุบัน' : 'Current Price',
   };
 
   useEffect(() => {
@@ -260,7 +270,7 @@ export default function DashboardPage() {
       {/* Header - Compact Minimal Design */}
       <header className="bg-purple-700 backdrop-blur-sm border-b border-purple-300 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between relative">
             {/* Logo and Title */}
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center border border-purple-300">
@@ -276,8 +286,8 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            {/* Actions */}
-            <div className="flex items-center gap-2">
+            {/* Desktop Actions */}
+            <div className="hidden sm:flex items-center gap-2">
               {/* Language Toggle */}
               <button
                 onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}
@@ -292,7 +302,7 @@ export default function DashboardPage() {
                   className="px-3 py-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-all flex items-center gap-1.5 font-medium cursor-pointer border border-purple-200 hover:border-purple-300"
                 >
                   <Icon icon="solar:settings-bold-duotone" className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{t.admin}</span>
+                  <span>{t.admin}</span>
                 </button>
               )}
               <button
@@ -300,22 +310,77 @@ export default function DashboardPage() {
                 className="px-3 py-2 text-xs bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border border-gray-200 hover:border-gray-300"
               >
                 <Icon icon="solar:user-bold-duotone" className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t.profile}</span>
+                <span>{t.profile}</span>
               </button>
               <button
                 onClick={handleSignOut}
                 className="px-3 py-2 text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border border-red-200 hover:border-red-300"
               >
                 <Icon icon="solar:logout-2-bold-duotone" className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t.logout}</span>
+                <span>{t.logout}</span>
               </button>
             </div>
+
+            {/* Mobile Hamburger */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden px-2 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-all cursor-pointer border border-purple-200"
+            >
+              <Icon icon={mobileMenuOpen ? "solar:close-circle-bold" : "solar:hamburger-menu-bold"} className="w-5 h-5" />
+            </button>
+
+            {/* Floating Mobile Menu */}
+            {mobileMenuOpen && (
+              <>
+                {/* Backdrop */}
+                <div 
+                  className="sm:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+                  onClick={() => setMobileMenuOpen(false)}
+                />
+                
+                {/* Floating Menu Card */}
+                <div className="sm:hidden absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-purple-100 z-50 animate-scale-in">
+                  <div className="p-3 space-y-2">
+                    <button
+                      onClick={() => { setLanguage(language === 'th' ? 'en' : 'th'); setMobileMenuOpen(false); }}
+                      className="w-full px-3 py-2.5 text-sm bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-all flex items-center gap-2 font-medium cursor-pointer border border-purple-200"
+                    >
+                      <Icon icon="ic:baseline-language" className="w-4 h-4" />
+                      <span>{language === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นไทย'}</span>
+                    </button>
+                    {user?.role === 'admin' && (
+                      <button
+                        onClick={() => { router.push('/admin'); setMobileMenuOpen(false); }}
+                        className="w-full px-3 py-2.5 text-sm bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-all flex items-center gap-2 font-medium cursor-pointer border border-purple-200"
+                      >
+                        <Icon icon="solar:settings-bold-duotone" className="w-4 h-4" />
+                        <span>{t.admin}</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { router.push('/profile'); setMobileMenuOpen(false); }}
+                      className="w-full px-3 py-2.5 text-sm bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg transition-all flex items-center gap-2 cursor-pointer border border-gray-200"
+                    >
+                      <Icon icon="solar:user-bold-duotone" className="w-4 h-4" />
+                      <span>{t.profile}</span>
+                    </button>
+                    <button
+                      onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
+                      className="w-full px-3 py-2.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all flex items-center gap-2 cursor-pointer border border-red-200"
+                    >
+                      <Icon icon="solar:logout-2-bold-duotone" className="w-4 h-4" />
+                      <span>{t.logout}</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>
 
       {/* Main Content - Clean White Space */}
-      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 space-y-12">
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-3 space-y-3">
         
         {/* Summary Cards - Compact Design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -437,7 +502,7 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center">
+              <div className="w-9 h-9 bg-purple-200 rounded-xl flex items-center justify-center border border-purple-300">
                 <Icon icon="hugeicons:pie-chart-08" className="w-5 h-5 text-purple-600" />
               </div>
               {t.yourPortfolio}
@@ -475,36 +540,133 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Sort Dropdown - Mobile */}
+          {/* Sort Dropdown - Mobile with Floating Menu */}
           {portfolio.length > 0 && (
-            <div className="lg:hidden flex items-center gap-2 bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
-              <Icon icon="solar:sort-bold-duotone" className="w-6 h-6 text-purple-500 flex-shrink-0" />
-              <span className="text-xs font-semibold text-gray-700">{t.sortBy}</span>
-              <select
-                value={sortField === 'none' ? '' : sortField}
-                onChange={(e) => {
-                  const field = e.target.value as keyof PortfolioItem;
-                  if (field) handleSort(field);
-                }}
-                className="flex-1 px-4 py-2 bg-white border border-purple-200 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
-              >
-                <option value="">Default</option>
-                <option value="assetName">Name</option>
-                <option value="assetType">Type</option>
-                <option value="currentValue">Value</option>
-                <option value="profit">Profit/Loss</option>
-                <option value="profitPercent">P/L %</option>
-                <option value="quantity">Quantity</option>
-                <option value="currentPrice">Current Price</option>
-              </select>
-              {sortField !== 'none' && (
+            <div className="lg:hidden relative">
+              <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
+                <Icon icon="solar:sort-bold-duotone" className="w-6 h-6 text-purple-500 flex-shrink-0" />
+                <span className="text-xs font-semibold text-gray-700">{t.sortBy}</span>
                 <button
-                  onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-                  className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-all cursor-pointer"
-                  title={`Sort ${sortDirection === 'asc' ? 'Ascending' : 'Descending'}`}
+                  onClick={() => setSortMenuOpen(!sortMenuOpen)}
+                  className="flex-1 px-4 py-2 bg-white border border-purple-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-purple-50 transition-all flex items-center justify-between cursor-pointer"
                 >
-                  <Icon icon={sortDirection === 'asc' ? 'solar:arrow-up-bold' : 'solar:arrow-down-bold'} className="w-4 h-4" />
+                  <span>{sortField === 'none' ? t.sortDefault : 
+                    sortField === 'assetName' ? t.sortName :
+                    sortField === 'assetType' ? t.sortType :
+                    sortField === 'currentValue' ? t.sortValue :
+                    sortField === 'profit' ? t.sortProfit :
+                    sortField === 'profitPercent' ? t.sortProfitPercent :
+                    sortField === 'quantity' ? t.sortQuantity :
+                    sortField === 'currentPrice' ? t.sortCurrentPrice : t.sortDefault
+                  }</span>
+                  <Icon icon={sortMenuOpen ? "solar:alt-arrow-up-bold" : "solar:alt-arrow-down-bold"} className="w-4 h-4" />
                 </button>
+                {sortField !== 'none' && (
+                  <button
+                    onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                    className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-all cursor-pointer"
+                    title={`Sort ${sortDirection === 'asc' ? 'Ascending' : 'Descending'}`}
+                  >
+                    <Icon icon={sortDirection === 'asc' ? 'solar:arrow-up-bold' : 'solar:arrow-down-bold'} className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Floating Sort Menu */}
+              {sortMenuOpen && (
+                <>
+                  {/* Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-40"
+                    onClick={() => setSortMenuOpen(false)}
+                  />
+                  
+                  {/* Floating Menu Card */}
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-purple-100 z-50 animate-scale-in">
+                    <div className="p-2 space-y-1">
+                      <button
+                        onClick={() => { setSortField('none'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'none' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortDefault}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('assetName'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'assetName' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortName}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('assetType'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'assetType' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortType}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('currentValue'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'currentValue' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortValue}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('profit'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'profit' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortProfit}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('profitPercent'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'profitPercent' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortProfitPercent}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('quantity'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'quantity' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortQuantity}
+                      </button>
+                      <button
+                        onClick={() => { handleSort('currentPrice'); setSortMenuOpen(false); }}
+                        className={`w-full px-4 py-2.5 text-sm rounded-lg text-left transition-all cursor-pointer ${
+                          sortField === 'currentPrice' 
+                            ? 'bg-purple-100 text-purple-700 font-medium' 
+                            : 'text-gray-700 hover:bg-purple-50'
+                        }`}
+                      >
+                        {t.sortCurrentPrice}
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}

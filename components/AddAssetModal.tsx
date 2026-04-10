@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '@iconify/react';
+import { NumericFormat } from 'react-number-format';
 
 interface AddAssetModalProps {
   isOpen: boolean;
@@ -47,6 +48,19 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
       setNotes(initialData.notes || '');
     }
   }, [mode, initialData, isOpen]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   // Autocomplete with debounce
   useEffect(() => {
@@ -173,15 +187,15 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
         <div className="sticky top-0 bg-white text-gray-900 p-4 sm:p-5 rounded-t-xl sm:rounded-t-2xl flex items-center justify-between border-b border-purple-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Icon icon={mode === 'edit' ? "solar:pen-bold-duotone" : "solar:add-square-bold-duotone"} className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+              <Icon icon={mode === 'edit' ? "solar:pen-bold-duotone" : "solar:add-square-bold-duotone"} className="w-7 h-7 sm:w-6 sm:h-6 text-purple-600" />
             </div>
             <h2 className="text-base sm:text-xl font-bold">{mode === 'edit' ? 'แก้ไข Asset' : 'เพิ่ม Asset'}</h2>
           </div>
           <button
             onClick={handleClose}
-            className="w-9 h-9 hover:bg-gray-100 rounded-lg transition-all flex items-center justify-center"
+            className="w-11 h-11 hover:bg-gray-100 rounded-lg transition-all flex items-center justify-center"
           >
-            <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-gray-600" />
+            <Icon icon="solar:close-circle-bold-duotone" className="w-9 h-9 text-purple-600" />
           </button>
         </div>
 
@@ -338,11 +352,13 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
                 <Icon icon="solar:calculator-bold-duotone" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
                 จำนวน (หน่วย)
               </label>
-              <input
-                type="number"
-                step="0.0001"
+              <NumericFormat
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onValueChange={(values) => setQuantity(values.value)}
+                thousandSeparator=","
+                decimalSeparator="."
+                decimalScale={5}
+                allowNegative={false}
                 className="w-full px-3 py-2 border-2 border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all text-xs sm:text-sm bg-white shadow-sm"
                 placeholder="0.00"
                 required
@@ -355,11 +371,13 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
                 <Icon icon="solar:wallet-money-bold-duotone" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500" />
                 ราคาทุนเฉลี่ย (บาท/หน่วย)
               </label>
-              <input
-                type="number"
-                step="0.01"
+              <NumericFormat
                 value={avgBuyPrice}
-                onChange={(e) => setAvgBuyPrice(e.target.value)}
+                onValueChange={(values) => setAvgBuyPrice(values.value)}
+                thousandSeparator=","
+                decimalSeparator="."
+                decimalScale={5}
+                allowNegative={false}
                 className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all text-xs sm:text-sm bg-white shadow-sm"
                 placeholder="0.00"
                 required
