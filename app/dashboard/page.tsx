@@ -857,7 +857,22 @@ export default function DashboardPage() {
                           type === 'stock' ? 'text-pink-700' : 
                           'text-blue-700'
                         }`}>
-                          {type === 'fund' ? <><Icon icon="lucide:chart-line" className="w-7 h-7 text-purple-400" /> Funds</> : type === 'stock' ? <><Icon icon="lucide:trending-up" className="w-7 h-7 text-pink-400" /> Stocks</> : <><Icon icon="lineicons:bitcoin" className="w-7 h-7 text-blue-400" /> Crypto</>}
+                          {type === 'fund' ? (
+                            <>
+                              <Icon icon="lucide:chart-line" className="w-7 h-7 text-purple-400" />
+                              {language === 'th' ? 'กองทุน' : 'Funds'}
+                            </>
+                          ) : type === 'stock' ? (
+                            <>
+                              <Icon icon="lucide:trending-up" className="w-7 h-7 text-pink-400" />
+                              {language === 'th' ? 'หุ้น' : 'Stocks'}
+                            </>
+                          ) : (
+                            <>
+                              <Icon icon="lineicons:bitcoin" className="w-7 h-7 text-blue-400" />
+                              Crypto
+                            </>
+                          )}
                         
                           <span className="text-xs opacity-75">({items.length})</span>
                         </span>
@@ -899,9 +914,9 @@ export default function DashboardPage() {
                     
                     {/* Column Headers */}
                     <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center text-xs font-semibold text-gray-600">
-                      <div className="flex-1">Symbol</div>
-                      <div className="flex-1 text-center">สัดส่วน</div>
-                      <div className="flex-1 text-right pr-1">Value / P/L</div>
+                      <div className="flex-1">{language === 'th' ? 'สัญลักษณ์' : 'Symbol'}</div>
+                      <div className="flex-1 text-center">{language === 'th' ? 'สัดส่วน' : 'Share'}</div>
+                      <div className="flex-1 text-right pr-1">{language === 'th' ? 'มูลค่า / กำไร-ขาดทุน' : 'Value / P/L'}</div>
                     </div>
                     
                     {/* Items List */}
@@ -919,15 +934,15 @@ export default function DashboardPage() {
                             }}
                           >
                             <div className="flex items-center text-xs gap-2">
-                              {/* Symbol - Can wrap to 2 lines */}
-                              <div className="flex-1">
-                                <span className="font-bold text-gray-900 text-sm block line-clamp-2 leading-tight">
+                              {/* Symbol - Can wrap to 2 lines with ellipsis */}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-gray-900 text-sm line-clamp-2 leading-tight overflow-hidden break-all">
                                   {item.assetType === 'fund' && item.assetDetails && 'projAbbrName' in item.assetDetails && item.assetDetails.projAbbrName 
                                     ? String(item.assetDetails.projAbbrName) 
                                     : (item.assetDetails && 'baseSymbol' in item.assetDetails && item.assetDetails.baseSymbol
                                         ? String(item.assetDetails.baseSymbol)
                                         : item.assetId)}
-                                </span>
+                                </div>
                               </div>
 
                               {/* Percentage */}
@@ -955,17 +970,17 @@ export default function DashboardPage() {
                                   {mobileDisplayMode === 'baht' ? (
                                     <>
                                       <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                        item.profitPercent >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        item.profit >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                       }`}>
-                                        {item.profitPercent >= 0 ? '+' : ''}{item.profitPercent.toFixed(1)}%
+                                        {item.profit >= 0 ? '+' : ''}฿{item.profit.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                                       </span>
                                     </>
                                   ) : (
                                     <>
                                       <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                        item.profit >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        item.profitPercent >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                       }`}>
-                                        {item.profit >= 0 ? '+' : ''}฿{item.profit.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                        {item.profitPercent >= 0 ? '+' : ''}{item.profitPercent.toFixed(1)}%
                                       </span>
                                     </>
                                   )}
@@ -975,6 +990,68 @@ export default function DashboardPage() {
                           </div>
                         );
                       })}
+                    </div>
+                    
+                    {/* Group Total Summary */}
+                    <div className={`px-4 py-3.5 border-t-2 ${
+                      type === 'fund' ? 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300' :
+                      type === 'stock' ? 'bg-gradient-to-br from-pink-50 to-pink-100 border-pink-300' : 
+                      'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300'
+                    }`}>
+                      {(() => {
+                        const totalValue = groupTotal;
+                        const totalProfit = items.reduce((sum, item) => sum + item.profit, 0);
+                        const totalCost = items.reduce((sum, item) => sum + item.totalCost, 0);
+                        const profitPercent = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+                        
+                        return (
+                          <div className="flex items-center justify-between">
+                            {/* Left: Total Label + Value */}
+                            <div>
+                              <div className="text-xs font-bold text-gray-500 mb-1.5 flex items-center gap-1">
+                                {/* <Icon icon="solar:calculator-minimalistic-bold-duotone" className="w-3.5 h-3.5" /> */}
+                                <span className="tracking-wide">
+                                  {language === 'th' 
+                                    ? `รวม ${type === 'fund' ? 'กองทุน' : type === 'stock' ? 'หุ้น' : 'Crypto'}`
+                                    : `Total ${type === 'fund' ? 'Funds' : type === 'stock' ? 'Stocks' : 'Crypto'}`
+                                  }
+                                </span>
+                              </div>
+                              <div className={`text-medium font-bold ${
+                                type === 'fund' ? 'text-purple-900' :
+                                type === 'stock' ? 'text-pink-900' : 
+                                'text-blue-900'
+                              }`}>
+                                ฿{totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </div>
+                            </div>
+                            
+                            {/* Right: P/L */}
+                            <div className="text-right">
+                              <div className="text-xs font-bold text-gray-500 mb-1.5 flex items-center justify-end gap-1">
+                                <Icon icon={totalProfit >= 0 ? "uil:arrow-growth" : "uil:chart-down"} className={`w-3.5 h-3.5 ${totalProfit >= 0 ? 'text-green-700' : 'text-red-700'}`} />
+                                <span className="tracking-wide">
+                                  {language === 'th' ? 'กำไร/ขาดทุน' : 'Profit/Loss'}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-end gap-2">
+                                <span className={`text-medium font-bold ${
+                                  totalProfit >= 0 ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                  {totalProfit >= 0 ? '+' : ''}฿{Math.abs(totalProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </span>
+                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${
+                                  totalProfit >= 0 
+                                    ? 'bg-green-600 text-white' 
+                                    : 'bg-red-600 text-white'
+                                }`}>
+                                  {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
@@ -1115,12 +1192,12 @@ export default function DashboardPage() {
                 <p className="text-xs font-semibold text-gray-700 mb-2">{language === 'th' ? 'กำไร/ขาดทุน' : 'Profit/Loss'}</p>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`text-xl font-bold ${selectedItem.profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    <p className={`text-lg font-bold ${selectedItem.profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                       {selectedItem.profit >= 0 ? '+' : ''}฿{selectedItem.profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-2xl font-bold flex items-center gap-1 ${selectedItem.profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-lg font-bold flex items-center gap-1 ${selectedItem.profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       <Icon icon={selectedItem.profitPercent >= 0 ? 'uil:arrow-growth' : 'uil:chart-down'} className="w-6 h-6" />
                       {selectedItem.profitPercent >= 0 ? '+' : ''}{selectedItem.profitPercent.toFixed(2)}%
                     </p>
