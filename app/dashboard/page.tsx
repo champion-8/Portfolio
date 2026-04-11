@@ -59,6 +59,9 @@ export default function DashboardPage() {
   const [language, setLanguage] = useState<'th' | 'en'>('en');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+  const [mobileDisplayMode, setMobileDisplayMode] = useState<'baht' | 'percent'>('baht');
 
   // Translations
   const t = {
@@ -364,73 +367,73 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5 space-y-3">
         
         {/* Summary Cards - Compact Design */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {/* Total Value */}
-          <div className="card-1 p-5 hover:scale-[1.01] transform transition-all duration-300">
-            <div className="flex flex-col gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Icon icon="solar:wallet-money-bold-duotone" className="w-5 h-5 text-purple-600" />
+          <div className="card-1 p-3 sm:p-5 hover:scale-[1.01] transform transition-all duration-300">
+            <div className="flex flex-col gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Icon icon="solar:wallet-money-bold-duotone" className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">{t.totalValue}</p>
-                <p className="text-xs sm:text-xl font-bold text-gray-900">
-                  ฿{summary.totalValue.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <p className="text-xs text-gray-500 mb-0.5 sm:mb-1">{t.totalValue}</p>
+                <p className="text-sm sm:text-xl font-bold text-gray-900">
+                  ฿{summary.totalValue.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Total Cost */}
-          <div className="card-2 p-5 hover:scale-[1.01] transform transition-all duration-300">
-            <div className="flex flex-col gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Icon icon="solar:calculator-bold-duotone" className="w-5 h-5 text-purple-600" />
+          <div className="card-2 p-3 sm:p-5 hover:scale-[1.01] transform transition-all duration-300">
+            <div className="flex flex-col gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Icon icon="solar:calculator-bold-duotone" className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">{t.totalCost}</p>
-                <p className="text-xs sm:text-xl font-bold text-gray-900">
-                  ฿{summary.totalCost.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <p className="text-xs text-gray-500 mb-0.5 sm:mb-1">{t.totalCost}</p>
+                <p className="text-sm sm:text-xl font-bold text-gray-900">
+                  ฿{summary.totalCost.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Profit/Loss */}
-          <div className="card-3 p-5 hover:scale-[1.01] transform transition-all duration-300">
-            <div className="flex flex-col gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          <div className="card-3 p-3 sm:p-5 hover:scale-[1.01] transform transition-all duration-300">
+            <div className="flex flex-col gap-2 sm:gap-3">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${
                 summary.totalProfit >= 0 ? 'bg-green-100' : 'bg-red-100'
               }`}>
                 <Icon 
                   icon={summary.totalProfit >= 0 ? "solar:graph-up-bold-duotone" : "solar:graph-down-bold-duotone"} 
-                  className={`w-5 h-5 ${summary.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  className={`w-4 h-4 sm:w-5 sm:h-5 ${summary.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">{t.profitLoss}</p>
-                <p className={`text-xs sm:text-xl font-bold ${
+                <p className="text-xs text-gray-500 mb-0.5 sm:mb-1">{t.profitLoss}</p>
+                <p className={`text-sm sm:text-xl font-bold ${
                   summary.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {summary.totalProfit >= 0 ? '+' : ''}฿{summary.totalProfit.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {summary.totalProfit >= 0 ? '+' : ''}฿{summary.totalProfit.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Percentage */}
-          <div className="card-4 p-5 hover:scale-[1.01] transform transition-all duration-300">
-            <div className="flex flex-col gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          <div className="card-4 p-3 sm:p-5 hover:scale-[1.01] transform transition-all duration-300">
+            <div className="flex flex-col gap-2 sm:gap-3">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${
                 summary.totalProfitPercent >= 0 ? 'bg-green-100' : 'bg-red-100'
               }`}>
                 <Icon 
                   icon="solar:chart-bold-duotone" 
-                  className={`w-5 h-5 ${summary.totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  className={`w-4 h-4 sm:w-5 sm:h-5 ${summary.totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">{t.percentage}</p>
-                <p className={`text-xs sm:text-xl font-bold ${
+                <p className="text-xs text-gray-500 mb-0.5 sm:mb-1">{t.percentage}</p>
+                <p className={`text-sm sm:text-xl font-bold ${
                   summary.totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {summary.totalProfitPercent >= 0 ? '+' : ''}{summary.totalProfitPercent.toFixed(2)}%
@@ -440,9 +443,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Portfolio Charts - Compact Design */}
+        {/* Portfolio Charts - Compact Design - Hidden on Mobile */}
         {portfolio.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="hidden sm:grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Trend Chart */}
             <div className="card-5 p-5 lg:col-span-2">
               <div className="mb-4">
@@ -830,93 +833,152 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Mobile Card View - Minimal Clean */}
+            {/* Mobile Single Line View - Aligned & Grouped */}
             <div className="lg:hidden space-y-4">
-              {sortedPortfolio.map((item) => (
-                <div key={item.id} className="card-1 p-3">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        item.assetType === 'fund' ? 'bg-purple-100 border border-purple-200' :
-                        item.assetType === 'stock' ? 'bg-pink-100 border border-pink-200' : 'bg-blue-100 border border-blue-200'
-                      }`}>
-                        <Icon 
-                          icon={
-                            item.assetType === 'fund' ? 'lucide:chart-line' :
-                            item.assetType === 'stock' ? 'ri:funds-box-fill' : 
-                            'lineicons:bitcoin'
-                          } 
-                          className={`w-6 h-6 ${
-                            item.assetType === 'fund' ? 'text-purple-600' :
-                            item.assetType === 'stock' ? 'text-pink-600' : 'text-blue-600'
-                          }`}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 text-base truncate" title={item.assetName}>{item.assetName}</h3>
-                        <div className='flex flex-wrap items-center gap-2'>
-                        <p className="text-sm font-medium text-gray-600 truncate">
-                          {item.assetType === 'fund' && item.assetDetails && 'projAbbrName' in item.assetDetails && item.assetDetails.projAbbrName ? String(item.assetDetails.projAbbrName) : (String(item.assetDetails?.baseSymbol) || item.assetId)}
-                        </p>
-                        <span className={`inline-block mt-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          item.assetType === 'fund' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                          item.assetType === 'stock' ? 'bg-pink-100 text-pink-800 border border-pink-200' : 
-                          'bg-blue-100 text-blue-800 border border-blue-200'
+              {/* Group by Type */}
+              {['fund', 'stock', 'crypto'].map((type) => {
+                const items = sortedPortfolio.filter(item => item.assetType === type);
+                if (items.length === 0) return null;
+                
+                // Calculate total for percentage
+                const groupTotal = items.reduce((sum, item) => sum + item.currentValue, 0);
+                
+                return (
+                  <div key={type} className="card-1 overflow-hidden">
+                    {/* Group Header with Toggle */}
+                    <div className={`px-3 py-2 flex items-center justify-between ${
+                      type === 'fund' ? 'bg-purple-50 border-b border-purple-200' :
+                      type === 'stock' ? 'bg-pink-50 border-b border-pink-200' : 
+                      'bg-blue-50 border-b border-blue-200'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-bold text-sm flex items-center gap-2 ${
+                          type === 'fund' ? 'text-purple-700' :
+                          type === 'stock' ? 'text-pink-700' : 
+                          'text-blue-700'
                         }`}>
-                          {item.assetType === 'fund' ? 'Fund' : item.assetType === 'stock' ? 'Stock' : 'Crypto'}
+                          {type === 'fund' ? <><Icon icon="lucide:chart-line" className="w-7 h-7 text-purple-400" /> Funds</> : type === 'stock' ? <><Icon icon="lucide:trending-up" className="w-7 h-7 text-pink-400" /> Stocks</> : <><Icon icon="lineicons:bitcoin" className="w-7 h-7 text-blue-400" /> Crypto</>}
+                        
+                          <span className="text-xs opacity-75">({items.length})</span>
                         </span>
-                        </div>
+                      </div>
+                      
+                      {/* Mode Toggle - Radio Style */}
+                      <div className={`flex rounded-lg overflow-hidden`}>
+                        <button
+                          onClick={() => setMobileDisplayMode('baht')}
+                          className={`px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+                            mobileDisplayMode === 'baht'
+                              ? type === 'fund' ? 'text-purple-700' :
+                                type === 'stock' ? 'text-pink-700' : 
+                                'text-blue-700'
+                              : type === 'fund' ? 'text-grey-500 hover:bg-purple-100' :
+                                type === 'stock' ? 'text-grey-500 hover:bg-pink-100' : 
+                                'text-grey-500 hover:bg-blue-100'
+                          }`}
+                        >
+                          ฿
+                        </button>
+                        <div className={`w-px h-6 bg-gray-400 self-center`}></div>
+                        <button
+                          onClick={() => setMobileDisplayMode('percent')}
+                          className={`px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+                            mobileDisplayMode === 'percent'
+                              ? type === 'fund' ? 'text-purple-700' :
+                                type === 'stock' ? 'text-pink-700' : 
+                                'text-blue-700'
+                              : type === 'fund' ? 'text-grey-500 hover:bg-purple-100' :
+                                type === 'stock' ? 'text-grey-500 hover:bg-pink-100' : 
+                                'text-grey-500 hover:bg-blue-100'
+                          }`}
+                        >
+                          %
+                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => handleEditAsset(item)}
-                        className="p-2.5 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg transition-all cursor-pointer border border-purple-200"
-                      >
-                        <Icon icon="solar:pen-bold-duotone" className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAsset(item.id)}
-                        className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all cursor-pointer border border-red-200"
-                      >
-                        <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-5 h-5" />
-                      </button>
+                    
+                    {/* Column Headers */}
+                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center text-xs font-semibold text-gray-600">
+                      <div className="flex-1">Symbol</div>
+                      <div className="flex-1 text-center">สัดส่วน</div>
+                      <div className="flex-1 text-right pr-1">Value / P/L</div>
+                    </div>
+                    
+                    {/* Items List */}
+                    <div className="divide-y divide-purple-100">
+                      {items.map((item) => {
+                        const itemPercentage = (item.currentValue / groupTotal) * 100;
+                        
+                        return (
+                          <div 
+                            key={item.id} 
+                            className="px-3 py-2 hover:bg-purple-200 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setSelectedItem(item);
+                              setDetailModalOpen(true);
+                            }}
+                          >
+                            <div className="flex items-center text-xs gap-2">
+                              {/* Symbol - Can wrap to 2 lines */}
+                              <div className="flex-1">
+                                <span className="font-bold text-gray-900 text-sm block line-clamp-2 leading-tight">
+                                  {item.assetType === 'fund' && item.assetDetails && 'projAbbrName' in item.assetDetails && item.assetDetails.projAbbrName 
+                                    ? String(item.assetDetails.projAbbrName) 
+                                    : (item.assetDetails && 'baseSymbol' in item.assetDetails && item.assetDetails.baseSymbol
+                                        ? String(item.assetDetails.baseSymbol)
+                                        : item.assetId)}
+                                </span>
+                              </div>
+
+                              {/* Percentage */}
+                              <div className="flex-1 text-center">
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${
+                                  type === 'fund' ? 'bg-purple-100 text-purple-700' :
+                                  type === 'stock' ? 'bg-pink-100 text-pink-700' : 
+                                  'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {itemPercentage.toFixed(0)}%
+                                </span>
+                              </div>
+
+                              {/* Value / P/L (2 lines) */}
+                              <div className="flex-1 text-right space-y-0.5 min-w-0">
+                                {/* Line 1: Value */}
+                                <div className="text-gray-900 font-semibold text-sm">
+                                  {`฿${item.currentValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                                </div>
+                                
+                                {/* Line 2: P/L */}
+                                <div className={`font-bold text-xs flex items-center justify-end gap-1 ${
+                                  item.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                                }`}>
+                                  {mobileDisplayMode === 'baht' ? (
+                                    <>
+                                      <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                        item.profitPercent >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                      }`}>
+                                        {item.profitPercent >= 0 ? '+' : ''}{item.profitPercent.toFixed(1)}%
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                        item.profit >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                      }`}>
+                                        {item.profit >= 0 ? '+' : ''}฿{item.profit.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 rounded-lg p-3 border border-purple-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Quantity</p>
-                      <p className="text-sm font-medium text-gray-900">{item.quantity.toLocaleString(undefined, { maximumFractionDigits: 4 })}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-purple-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Cost</p>
-                      <p className="text-sm font-medium text-gray-400">฿{item.avgBuyPrice.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-purple-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Current</p>
-                      <p className="text-sm font-medium text-gray-900">฿{item.currentPrice.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 border border-purple-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Value</p>
-                      <p className="text-sm font-medium text-gray-900">฿{item.currentValue.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  
-                  <div className={`mt-2 p-3 rounded-lg ${item.profit >= 0 ? 'bg-green-50 border border-green-400' : 'bg-red-50 border border-red-400'}`}>
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Profit/Loss</p>
-                    <div className="flex items-center justify-between">
-                      <p className={`text-base font-medium ${item.profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                        {item.profit >= 0 ? '+' : '-'}฿{Math.abs(item.profit).toLocaleString()}
-                      </p>
-                      <p className={`text-base font-semibold ${item.profitPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        <Icon icon={item.profitPercent >= 0 ? 'uil:arrow-growth' : 'uil:chart-down'} className="w-4 h-4 inline-block mr-1" />
-                            {item.profitPercent >= 0 ? '+' : ''}{item.profitPercent.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
@@ -957,6 +1019,153 @@ export default function DashboardPage() {
         mode={editingAsset ? 'edit' : 'add'}
         initialData={editingAsset || undefined}
       />
+
+      {/* Detail Modal - Mobile */}
+      {detailModalOpen && selectedItem && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden"
+            onClick={() => setDetailModalOpen(false)}
+          />
+          
+          {/* Floating Detail Card */}
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl z-50 lg:hidden animate-scale-in max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-purple-100 p-4 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    selectedItem.assetType === 'fund' ? 'bg-purple-100 border border-purple-200' :
+                    selectedItem.assetType === 'stock' ? 'bg-pink-100 border border-pink-200' : 'bg-blue-100 border border-blue-200'
+                  }`}>
+                    <Icon 
+                      icon={
+                        selectedItem.assetType === 'fund' ? 'lucide:chart-line' :
+                        selectedItem.assetType === 'stock' ? 'ri:funds-box-fill' : 
+                        'lineicons:bitcoin'
+                      } 
+                      className={`w-6 h-6 ${
+                        selectedItem.assetType === 'fund' ? 'text-purple-600' :
+                        selectedItem.assetType === 'stock' ? 'text-pink-600' : 'text-blue-600'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-base">{selectedItem.assetName}</h3>
+                    <p className="text-sm text-gray-600">
+                      {selectedItem.assetType === 'fund' && selectedItem.assetDetails && 'projAbbrName' in selectedItem.assetDetails && selectedItem.assetDetails.projAbbrName 
+                        ? String(selectedItem.assetDetails.projAbbrName) 
+                        : (selectedItem.assetDetails && 'baseSymbol' in selectedItem.assetDetails && selectedItem.assetDetails.baseSymbol
+                            ? String(selectedItem.assetDetails.baseSymbol)
+                            : selectedItem.assetId)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDetailModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                >
+                  <Icon icon="solar:close-circle-bold" className="w-8 h-8 text-purple-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {/* Type Badge */}
+              <div className="flex justify-center">
+                <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
+                  selectedItem.assetType === 'fund' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                  selectedItem.assetType === 'stock' ? 'bg-pink-100 text-pink-800 border border-pink-200' : 
+                  'bg-blue-100 text-blue-800 border border-blue-200'
+                }`}>
+                  {selectedItem.assetType === 'fund' ? 'Mutual Fund' : selectedItem.assetType === 'stock' ? 'Stock' : 'Cryptocurrency'}
+                </span>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">{language === 'th' ? 'จำนวน' : 'Quantity'}</p>
+                  <p className="text-base font-bold text-gray-900">{selectedItem.quantity.toLocaleString(undefined, { minimumFractionDigits: 4 })}</p>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">{language === 'th' ? 'ต้นทุนต่อหน่วย' : 'Cost/Unit'}</p>
+                  <p className="text-base font-bold text-gray-900">฿{selectedItem.avgBuyPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">{language === 'th' ? 'ราคาปัจจุบัน' : 'Current Price'}</p>
+                  <p className="text-base font-bold text-gray-900">฿{selectedItem.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">{language === 'th' ? 'มูลค่ารวม' : 'Total Value'}</p>
+                  <p className="text-base font-bold text-gray-900">฿{selectedItem.currentValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+
+              {/* Total Cost */}
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <p className="text-xs font-semibold text-gray-600 mb-1.5">{language === 'th' ? 'ต้นทุนทั้งหมด' : 'Total Cost'}</p>
+                <p className="text-lg font-bold text-gray-900">฿{selectedItem.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+              </div>
+
+              {/* Profit/Loss */}
+              <div className={`rounded-xl p-4 border-2 ${
+                selectedItem.profit >= 0 ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'
+              }`}>
+                <p className="text-xs font-semibold text-gray-700 mb-2">{language === 'th' ? 'กำไร/ขาดทุน' : 'Profit/Loss'}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-xl font-bold ${selectedItem.profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {selectedItem.profit >= 0 ? '+' : ''}฿{selectedItem.profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-2xl font-bold flex items-center gap-1 ${selectedItem.profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <Icon icon={selectedItem.profitPercent >= 0 ? 'uil:arrow-growth' : 'uil:chart-down'} className="w-6 h-6" />
+                      {selectedItem.profitPercent >= 0 ? '+' : ''}{selectedItem.profitPercent.toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedItem.notes && (
+                <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+                  <p className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                    <Icon icon="solar:notes-bold-duotone" className="w-4 h-4 text-yellow-600" />
+                    {language === 'th' ? 'หมายเหตุ' : 'Notes'}
+                  </p>
+                  <p className="text-sm text-gray-700">{selectedItem.notes}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    handleEditAsset(selectedItem);
+                    setDetailModalOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all"
+                >
+                  <Icon icon="solar:pen-bold-duotone" className="w-5 h-5" />
+                  {language === 'th' ? 'แก้ไข' : 'Edit'}
+                </button>
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    handleDeleteAsset(selectedItem.id);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all"
+                >
+                  <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-5 h-5" />
+                  {language === 'th' ? 'ลบ' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
