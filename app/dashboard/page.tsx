@@ -915,19 +915,18 @@ export default function DashboardPage() {
                     {/* Column Headers */}
                     <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center text-xs font-semibold text-gray-600">
                       <div className="flex-1">{language === 'th' ? 'สัญลักษณ์' : 'Symbol'}</div>
-                      <div className="flex-1 text-center">{language === 'th' ? 'สัดส่วน' : 'Share'}</div>
-                      <div className="flex-1 text-right pr-1">{language === 'th' ? 'มูลค่า / กำไร-ขาดทุน' : 'Value / P/L'}</div>
+                      <div className="flex-2 text-right pr-1">{language === 'th' ? 'มูลค่า / กำไร-ขาดทุน' : 'Value'}</div>
                     </div>
                     
                     {/* Items List */}
-                    <div className="divide-y divide-purple-100">
+                    <div className="divide-y divide-gray-200">
                       {items.map((item) => {
                         const itemPercentage = (item.currentValue / groupTotal) * 100;
                         
                         return (
                           <div 
                             key={item.id} 
-                            className="px-3 py-2 hover:bg-purple-200 transition-colors cursor-pointer"
+                            className={`px-2 py-1 hover:bg-purple-200 transition-colors cursor-pointer`}
                             onClick={() => {
                               setSelectedItem(item);
                               setDetailModalOpen(true);
@@ -936,7 +935,7 @@ export default function DashboardPage() {
                             <div className="flex items-center text-xs gap-2">
                               {/* Symbol - Can wrap to 2 lines with ellipsis */}
                               <div className="flex-1 min-w-0">
-                                <div className="font-bold text-gray-900 text-sm line-clamp-2 leading-tight overflow-hidden break-all">
+                                <div className="font-medium text-gray-900 text-sm line-clamp-2 leading-tight overflow-hidden break-all">
                                   {item.assetType === 'fund' && item.assetDetails && 'projAbbrName' in item.assetDetails && item.assetDetails.projAbbrName 
                                     ? String(item.assetDetails.projAbbrName) 
                                     : (item.assetDetails && 'baseSymbol' in item.assetDetails && item.assetDetails.baseSymbol
@@ -946,7 +945,7 @@ export default function DashboardPage() {
                               </div>
 
                               {/* Percentage */}
-                              <div className="flex-1 text-center">
+                              {/* <div className="flex-1 text-center">
                                 <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${
                                   type === 'fund' ? 'bg-purple-100 text-purple-700' :
                                   type === 'stock' ? 'bg-pink-100 text-pink-700' : 
@@ -954,17 +953,17 @@ export default function DashboardPage() {
                                 }`}>
                                   {itemPercentage.toFixed(0)}%
                                 </span>
-                              </div>
+                              </div> */}
 
                               {/* Value / P/L (2 lines) */}
                               <div className="flex-1 text-right space-y-0.5 min-w-0">
                                 {/* Line 1: Value */}
-                                <div className="text-gray-900 font-semibold text-sm">
+                                <div className="text-gray-900 font-medium text-xs">
                                   {`฿${item.currentValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                                 </div>
                                 
                                 {/* Line 2: P/L */}
-                                <div className={`font-bold text-xs flex items-center justify-end gap-1 ${
+                                <div className={`font-medium text-xs flex items-center justify-end gap-1 ${
                                   item.profit >= 0 ? 'text-green-600' : 'text-red-600'
                                 }`}>
                                   {mobileDisplayMode === 'baht' ? (
@@ -1017,7 +1016,7 @@ export default function DashboardPage() {
                                   }
                                 </span>
                               </div>
-                              <div className={`text-medium font-bold ${
+                              <div className={`text-medium font-medium ${
                                 type === 'fund' ? 'text-purple-900' :
                                 type === 'stock' ? 'text-pink-900' : 
                                 'text-blue-900'
@@ -1035,12 +1034,12 @@ export default function DashboardPage() {
                                 </span>
                               </div>
                               <div className="flex items-center justify-end gap-2">
-                                <span className={`text-medium font-bold ${
+                                <span className={`text-medium font-medium ${
                                   totalProfit >= 0 ? 'text-green-700' : 'text-red-700'
                                 }`}>
                                   {totalProfit >= 0 ? '+' : ''}฿{Math.abs(totalProfit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                 </span>
-                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${
+                                <span className={`px-2 py-1 rounded-lg text-sm font-medium shadow-sm ${
                                   totalProfit >= 0 
                                     ? 'bg-green-600 text-white' 
                                     : 'bg-red-600 text-white'
