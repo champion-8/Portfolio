@@ -1555,7 +1555,7 @@ export default function DashboardPage() {
                 >
                   <Icon
                     icon="solar:close-circle-bold"
-                    className="w-8 h-8 text-purple-500"
+                    className="w-9 h-9 text-purple-500"
                   />
                 </button>
               </div>
@@ -1582,46 +1582,58 @@ export default function DashboardPage() {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
+              <div className="grid grid-cols-1 gap-3">
+                <div className="bg-purple-50 rounded-xl p-3 border border-purple-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-1">
                     {language === "th" ? "จำนวน" : "Quantity"}
                   </p>
-                  <p className="text-base font-bold text-gray-900">
+                  <p className="text-sm font-bold text-gray-900 mb-3">
                     {selectedItem.quantity.toLocaleString(undefined, {
                       minimumFractionDigits: 4,
                     })}
                   </p>
-                </div>
-                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
+                  <p className="text-xs font-semibold text-gray-600 mb-1">
                     {language === "th" ? "ต้นทุนต่อหน่วย" : "Cost/Unit"}
                   </p>
-                  <p className="text-base font-bold text-gray-900">
+                  <p className="text-sm font-bold text-gray-900 mb-3">
                     ฿
                     {selectedItem.avgBuyPrice.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                     })}
                   </p>
-                </div>
-                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
+                  <p className="text-xs font-semibold text-gray-600 mb-1">
                     {language === "th" ? "ราคาปัจจุบัน" : "Current Price"}
                   </p>
-                  <p className="text-base font-bold text-gray-900">
+                  <p className="text-sm font-bold text-gray-900 mb-3 flex gap-2 items-center">
                     ฿
                     {selectedItem.currentPrice.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                     })}
+                    <Icon
+                      icon={
+                        selectedItem.profitPercent >= 0
+                          ? "uil:arrow-growth"
+                          : "uil:chart-down"
+                      }
+                      className={`w-5 h-5 ${selectedItem.profitPercent >= 0 ? "text-green-600" : "text-red-600"}`}
+                    />
+                    <span
+                      className={`px-1 py-1 rounded-lg text-xs font-medium shadow-sm ${
+                        selectedItem.profitPercent >= 0
+                          ? "bg-green-600 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                    >
+                      {selectedItem.profitPercent >= 0 ? "+" : ""}
+                      {selectedItem.profitPercent.toFixed(1)}%
+                    </span>
                   </p>
-                </div>
-                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                  <p className="text-xs font-semibold text-gray-600 mb-1.5">
-                    {language === "th" ? "มูลค่ารวม" : "Total Value"}
+                  <p className="text-xs font-semibold text-gray-600 mb-1">
+                  {language === "th" ? "ต้นทุนทั้งหมด" : "Total Cost"}
                   </p>
-                  <p className="text-base font-bold text-gray-900">
+                  <p className="text-sm font-bold text-gray-900 mb-3">
                     ฿
-                    {selectedItem.currentValue.toLocaleString(undefined, {
+                    {selectedItem.totalCost.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                     })}
                   </p>
@@ -1631,11 +1643,11 @@ export default function DashboardPage() {
               {/* Total Cost */}
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <p className="text-xs font-semibold text-gray-600 mb-1.5">
-                  {language === "th" ? "ต้นทุนทั้งหมด" : "Total Cost"}
+                    {language === "th" ? "มูลค่ารวม" : "Total Value"}
                 </p>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-medium font-bold text-gray-900">
                   ฿
-                  {selectedItem.totalCost.toLocaleString(undefined, {
+                  {selectedItem.currentValue.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                   })}
                 </p>
@@ -1655,28 +1667,12 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p
-                      className={`text-lg font-bold ${selectedItem.profit >= 0 ? "text-green-700" : "text-red-700"}`}
+                      className={`text-medium font-bold ${selectedItem.profit >= 0 ? "text-green-700" : "text-red-700"}`}
                     >
                       {selectedItem.profit >= 0 ? "+" : ""}฿
                       {selectedItem.profit.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                       })}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-lg font-bold flex items-center gap-1 ${selectedItem.profitPercent >= 0 ? "text-green-600" : "text-red-600"}`}
-                    >
-                      <Icon
-                        icon={
-                          selectedItem.profitPercent >= 0
-                            ? "uil:arrow-growth"
-                            : "uil:chart-down"
-                        }
-                        className="w-6 h-6"
-                      />
-                      {selectedItem.profitPercent >= 0 ? "+" : ""}
-                      {selectedItem.profitPercent.toFixed(2)}%
                     </p>
                   </div>
                 </div>
