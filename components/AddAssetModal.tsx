@@ -195,7 +195,7 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
             onClick={handleClose}
             className="w-11 h-11 hover:bg-gray-100 rounded-lg transition-all flex items-center justify-center"
           >
-            <Icon icon="solar:close-circle-bold-duotone" className="w-9 h-9 text-purple-600" />
+            <Icon icon="solar:close-circle-bold-duotone" className="w-9 h-9 text-purple-600 cursor-pointer" />
           </button>
         </div>
 
@@ -224,7 +224,7 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
               <button
                 type="button"
                 onClick={() => { setAssetType('fund'); setSelectedAsset(null); setSearchQuery(''); setShowResults(false); }}
-                className={`px-3 py-3 sm:py-4 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-xs ${
+                className={`px-3 py-3 cursor-pointer sm:py-4 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-xs ${
                   assetType === 'fund'
                     ? 'bg-purple-600 text-white shadow-md scale-105'
                     : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
@@ -236,7 +236,7 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
               <button
                 type="button"
                 onClick={() => { setAssetType('stock'); setSelectedAsset(null); setSearchQuery(''); setShowResults(false); }}
-                className={`px-3 py-3 sm:py-4 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-xs ${
+                className={`px-3 py-3 cursor-pointer sm:py-4 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-xs ${
                   assetType === 'stock'
                     ? 'bg-purple-600 text-white shadow-md scale-105'
                     : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
@@ -248,7 +248,7 @@ export default function AddAssetModal({ isOpen, onClose, onSuccess, mode = 'add'
               <button
                 type="button"
                 onClick={() => { setAssetType('crypto'); setSelectedAsset(null); setSearchQuery(''); setShowResults(false); }}
-                className={`px-3 py-3 sm:py-4 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-xs ${
+                className={`px-3 py-3 cursor-pointer sm:py-4 rounded-xl font-medium transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 text-xs ${
                   assetType === 'crypto'
                     ? 'bg-purple-600 text-white shadow-md scale-105'
                     : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'

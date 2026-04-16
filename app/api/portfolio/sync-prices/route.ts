@@ -62,7 +62,7 @@ function isStale(lastUpdate: Date | null, thresholdMs: number): boolean {
 }
 
 // Function to fetch and update NAV from SEC API
-// Try fetching from today back to 7 days ago (for weekends/holidays)
+// Try fetching from today back to 10 days ago (for weekends/holidays)
 async function fetchAndUpdateNav(projId: string): Promise<{ success: boolean; newPrice?: number; error?: string }> {
   const errors: string[] = [];
   // Try from today back to 10 days
@@ -172,7 +172,7 @@ async function fetchAndUpdateNav(projId: string): Promise<{ success: boolean; ne
   // If we get here, all attempts failed
   return { 
     success: false, 
-    error: `No NAV data found in last 7 days. Errors: ${errors.join('; ')}` 
+    error: `No NAV data found in last 10 days. Errors: ${errors.join('; ')}` 
   };
 }
 
@@ -225,7 +225,7 @@ export async function POST() {
           // Fetch fresh NAV from SEC API
           console.log(`Fetching fresh NAV for fund ${fund.projId}...`);
           const navResult = await fetchAndUpdateNav(fund.projId);
-          
+          console.log(`Result ${fund.projId} : ${JSON.stringify(navResult)}`);
           if (navResult.success && navResult.newPrice) {
             results.push({
               assetType: 'fund',

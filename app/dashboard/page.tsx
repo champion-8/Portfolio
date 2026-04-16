@@ -956,9 +956,9 @@ export default function DashboardPage() {
                               </div> */}
 
                               {/* Value / P/L (2 lines) */}
-                              <div className="flex-1 text-right space-y-0.5 min-w-0">
+                              <div className="flex-2 text-right space-y-0.5 min-w-0">
                                 {/* Line 1: Value */}
-                                <div className="text-gray-900 font-medium text-xs">
+                                <div className="text-gray-900 font-semibold text-xs">
                                   {`฿${item.currentValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                                 </div>
                                 
