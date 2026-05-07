@@ -29,7 +29,29 @@ interface PortfolioItem {
   profit: number;
   profitPercent: number;
   notes: string | null;
+  folderId: string | null;
   assetDetails?: Record<string, unknown>;
+}
+
+interface Folder {
+  id: string;
+  name: string;
+  color: string;
+  sortOrder: number;
+}
+
+interface Transaction {
+  id: string;
+  portfolioId: string | null;
+  assetType: string;
+  assetId: string;
+  assetName: string;
+  type: string;
+  quantity: number;
+  pricePerUnit: number;
+  totalAmount: number;
+  transactionDate: string;
+  notes: string | null;
 }
 
 interface Summary {
@@ -66,6 +88,16 @@ export default function DashboardPage() {
   const [mobileDisplayMode, setMobileDisplayMode] = useState<
     "baht" | "percent"
   >("baht");
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [folderModalMode, setFolderModalMode] = useState<"create" | "edit">("create");
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+  const [folderName, setFolderName] = useState("");
+  const [folderColor, setFolderColor] = useState("purple");
+  const [folderSaving, setFolderSaving] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
 
   // Translations
   const t = {
@@ -96,6 +128,14 @@ export default function DashboardPage() {
     sortProfitPercent: language === "th" ? "กำไร %" : "P/L %",
     sortQuantity: language === "th" ? "จำนวน" : "Quantity",
     sortCurrentPrice: language === "th" ? "ราคาปัจจุบัน" : "Current Price",
+    allFolders: language === "th" ? "ทั้งหมด" : "All",
+    folders: language === "th" ? "โฟลเดอร์" : "Folders",
+    createFolder: language === "th" ? "สร้างโฟลเดอร์" : "New Folder",
+    editFolder: language === "th" ? "แก้ไขโฟลเดอร์" : "Edit Folder",
+    deleteFolder: language === "th" ? "ลบโฟลเดอร์" : "Delete Folder",
+    folderName: language === "th" ? "ชื่อโฟลเดอร์" : "Folder Name",
+    folderColor: language === "th" ? "สี" : "Color",
+    noFolder: language === "th" ? "ไม่มีโฟลเดอร์" : "No Folder",
   };
 
   useEffect(() => {
@@ -110,12 +150,39 @@ export default function DashboardPage() {
 
       if (data.success) {
         setUser(data.user);
-        await fetchPortfolio();
+        await Promise.all([fetchPortfolio(), fetchFolders()]);
       }
     } catch {
       console.error("Failed to fetch user");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFolders = async () => {
+    try {
+      const res = await fetch("/api/portfolio/folders");
+      const data = await res.json();
+      if (data.success) {
+        setFolders(data.folders);
+      }
+    } catch (error) {
+      console.error("Failed to fetch folders:", error);
+    }
+  };
+
+  const fetchTransactions = async (portfolioId: string) => {
+    setTransactionsLoading(true);
+    try {
+      const res = await fetch(`/api/portfolio/transactions?portfolioId=${portfolioId}`);
+      const data = await res.json();
+      if (data.success) {
+        setTransactions(data.transactions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setTransactionsLoading(false);
     }
   };
 
@@ -217,8 +284,62 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSort = (field: keyof PortfolioItem) => {
-    if (sortField === field) {
+  const openCreateFolder = () => {
+    setFolderModalMode("create");
+    setEditingFolder(null);
+    setFolderName("");
+    setFolderColor("purple");
+    setFolderModalOpen(true);
+  };
+
+  const openEditFolder = (folder: Folder) => {
+    setFolderModalMode("edit");
+    setEditingFolder(folder);
+    setFolderName(folder.name);
+    setFolderColor(folder.color);
+    setFolderModalOpen(true);
+  };
+
+  const handleSaveFolder = async () => {
+    if (!folderName.trim()) return;
+    setFolderSaving(true);
+    try {
+      const res = await fetch("/api/portfolio/folders", {
+        method: folderModalMode === "create" ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          folderModalMode === "create"
+            ? { name: folderName.trim(), color: folderColor }
+            : { id: editingFolder?.id, name: folderName.trim(), color: folderColor }
+        ),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchFolders();
+        setFolderModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Save folder error:", error);
+    } finally {
+      setFolderSaving(false);
+    }
+  };
+
+  const handleDeleteFolder = async (folder: Folder) => {
+    if (!confirm(`ลบโฟลเดอร์ "${folder.name}" ใช่หรือไม่? Asset ใน folder จะถูกย้ายมาที่ "ทั้งหมด"`)) return;
+    try {
+      const res = await fetch(`/api/portfolio/folders?id=${folder.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        if (selectedFolderId === folder.id) setSelectedFolderId(null);
+        await Promise.all([fetchFolders(), fetchPortfolio()]);
+      }
+    } catch (error) {
+      console.error("Delete folder error:", error);
+    }
+  };
+
+  const handleSort = (field: keyof PortfolioItem) => {    if (sortField === field) {
       // Toggle direction if same field
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -228,7 +349,22 @@ export default function DashboardPage() {
     }
   };
 
-  const sortedPortfolio = [...portfolio].sort((a, b) => {
+  const filteredPortfolio = selectedFolderId === null
+    ? portfolio
+    : portfolio.filter((item) => item.folderId === selectedFolderId);
+
+  const displayedSummary = {
+    totalCost: filteredPortfolio.reduce((s, i) => s + i.totalCost, 0),
+    totalValue: filteredPortfolio.reduce((s, i) => s + i.currentValue, 0),
+    totalProfit: filteredPortfolio.reduce((s, i) => s + i.profit, 0),
+    totalProfitPercent: 0,
+  };
+  displayedSummary.totalProfitPercent =
+    displayedSummary.totalCost > 0
+      ? (displayedSummary.totalProfit / displayedSummary.totalCost) * 100
+      : 0;
+
+  const sortedPortfolio = [...filteredPortfolio].sort((a, b) => {
     if (sortField === "none") return 0;
 
     const aValue = a[sortField];
@@ -428,7 +564,7 @@ export default function DashboardPage() {
                 </p>
                 <p className="text-sm sm:text-xl font-bold text-gray-900">
                   ฿
-                  {summary.totalValue.toLocaleString("th-TH", {
+                  {displayedSummary.totalValue.toLocaleString("th-TH", {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}
@@ -452,7 +588,7 @@ export default function DashboardPage() {
                 </p>
                 <p className="text-sm sm:text-xl font-bold text-gray-900">
                   ฿
-                  {summary.totalCost.toLocaleString("th-TH", {
+                  {displayedSummary.totalCost.toLocaleString("th-TH", {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}
@@ -471,11 +607,11 @@ export default function DashboardPage() {
               >
                 <Icon
                   icon={
-                    summary.totalProfit >= 0
+                    displayedSummary.totalProfit >= 0
                       ? "solar:graph-up-bold-duotone"
                       : "solar:graph-down-bold-duotone"
                   }
-                  className={`w-4 h-4 sm:w-5 sm:h-5 ${summary.totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`w-4 h-4 sm:w-5 sm:h-5 ${displayedSummary.totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}
                 />
               </div>
               <div>
@@ -484,11 +620,11 @@ export default function DashboardPage() {
                 </p>
                 <p
                   className={`text-sm sm:text-xl font-bold ${
-                    summary.totalProfit >= 0 ? "text-green-600" : "text-red-600"
+                    displayedSummary.totalProfit >= 0 ? "text-green-600" : "text-red-600"
                   }`}
                 >
-                  {summary.totalProfit >= 0 ? "+" : ""}฿
-                  {summary.totalProfit.toLocaleString("th-TH", {
+                  {displayedSummary.totalProfit >= 0 ? "+" : ""}฿
+                  {displayedSummary.totalProfit.toLocaleString("th-TH", {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}
@@ -509,7 +645,7 @@ export default function DashboardPage() {
               >
                 <Icon
                   icon="solar:chart-bold-duotone"
-                  className={`w-4 h-4 sm:w-5 sm:h-5 ${summary.totalProfitPercent >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`w-4 h-4 sm:w-5 sm:h-5 ${displayedSummary.totalProfitPercent >= 0 ? "text-green-600" : "text-red-600"}`}
                 />
               </div>
               <div>
@@ -518,13 +654,13 @@ export default function DashboardPage() {
                 </p>
                 <p
                   className={`text-sm sm:text-xl font-bold ${
-                    summary.totalProfitPercent >= 0
+                    displayedSummary.totalProfitPercent >= 0
                       ? "text-green-600"
                       : "text-red-600"
                   }`}
                 >
-                  {summary.totalProfitPercent >= 0 ? "+" : ""}
-                  {summary.totalProfitPercent.toFixed(2)}%
+                  {displayedSummary.totalProfitPercent >= 0 ? "+" : ""}
+                  {displayedSummary.totalProfitPercent.toFixed(2)}%
                 </p>
               </div>
             </div>
@@ -551,8 +687,8 @@ export default function DashboardPage() {
                 </p>
               </div>
               <PortfolioChart
-                totalValue={summary.totalValue}
-                totalCost={summary.totalCost}
+                totalValue={displayedSummary.totalValue}
+                totalCost={displayedSummary.totalCost}
               />
             </div>
 
@@ -572,7 +708,7 @@ export default function DashboardPage() {
                   {t.distributionByType}
                 </p>
               </div>
-              <PortfolioCompositionChart portfolio={portfolio} mode="type" />
+              <PortfolioCompositionChart portfolio={filteredPortfolio} mode="type" />
             </div>
           </div>
         )}
@@ -615,6 +751,14 @@ export default function DashboardPage() {
                 </button>
               )}
               <button
+                onClick={openCreateFolder}
+                className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-2 px-4 rounded-lg transition-all flex items-center gap-1.5 flex-1 sm:flex-initial justify-center text-sm cursor-pointer border border-purple-200 hover:border-purple-300"
+              >
+                <Icon icon="solar:folder-add-bold-duotone" className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.createFolder}</span>
+                <span className="sm:hidden">Folder</span>
+              </button>
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 flex-1 sm:flex-initial justify-center text-sm cursor-pointer"
               >
@@ -624,6 +768,65 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
+
+          {/* Folder Tabs */}
+          {(folders.length > 0 || portfolio.length > 0) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setSelectedFolderId(null)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer border ${
+                  selectedFolderId === null
+                    ? "bg-purple-600 text-white border-purple-600 shadow-sm"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:text-purple-600"
+                }`}
+              >
+                <Icon icon="solar:home-bold-duotone" className="w-3.5 h-3.5" />
+                {t.allFolders}
+                <span className="text-xs opacity-75">({portfolio.length})</span>
+              </button>
+              {folders.map((folder) => {
+                const count = portfolio.filter((p) => p.folderId === folder.id).length;
+                return (
+                  <div key={folder.id} className="flex items-center gap-0.5">
+                    <button
+                      onClick={() => setSelectedFolderId(folder.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-l-lg text-sm font-medium transition-all cursor-pointer border-y border-l ${
+                        selectedFolderId === folder.id
+                          ? "bg-purple-600 text-white border-purple-600 shadow-sm"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:text-purple-600"
+                      }`}
+                    >
+                      <Icon icon="solar:folder-bold-duotone" className="w-3.5 h-3.5" />
+                      {folder.name}
+                      <span className="text-xs opacity-75">({count})</span>
+                    </button>
+                    <button
+                      onClick={() => openEditFolder(folder)}
+                      className={`px-1.5 py-1.5 text-sm transition-all cursor-pointer border-y border-l ${
+                        selectedFolderId === folder.id
+                          ? "bg-purple-500 text-white border-purple-500"
+                          : "bg-white text-gray-400 border-gray-200 hover:text-purple-600 hover:bg-purple-50"
+                      }`}
+                      title="Edit folder"
+                    >
+                      <Icon icon="solar:pen-2-bold-duotone" className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteFolder(folder)}
+                      className={`px-1.5 py-1.5 rounded-r-lg text-sm transition-all cursor-pointer border ${
+                        selectedFolderId === folder.id
+                          ? "bg-purple-500 text-white border-purple-500"
+                          : "bg-white text-gray-400 border-gray-200 hover:text-red-600 hover:bg-red-50"
+                      }`}
+                      title="Delete folder"
+                    >
+                      <Icon icon="solar:trash-bin-trash-bold-duotone" className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Sort Dropdown - Mobile with Floating Menu */}
           {portfolio.length > 0 && (
@@ -824,7 +1027,7 @@ export default function DashboardPage() {
         )}
 
         {/* Portfolio Table/Cards - Minimal Clean Design */}
-        {portfolio.length === 0 ? (
+        {filteredPortfolio.length === 0 ? (
           <div className="card-1 p-16 text-center">
             <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Icon
@@ -833,18 +1036,24 @@ export default function DashboardPage() {
               />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              No Investments Yet
+              {selectedFolderId
+                ? (language === "th" ? "ไม่มี Asset ในโฟลเดอร์นี้" : "No Assets in This Folder")
+                : "No Investments Yet"}
             </h3>
             <p className="text-sm text-gray-500 mb-8">
-              Start building your portfolio by adding your first asset
+              {selectedFolderId
+                ? (language === "th" ? "เพิ่ม Asset แล้วเลือกโฟลเดอร์นี้" : "Add an asset and assign it to this folder")
+                : "Start building your portfolio by adding your first asset"}
             </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2"
-            >
-              <Icon icon="solar:add-circle-bold-duotone" className="w-5 h-5" />
-              Add First Asset
-            </button>
+            {!selectedFolderId && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2"
+              >
+                <Icon icon="solar:add-circle-bold-duotone" className="w-5 h-5" />
+                Add First Asset
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -1267,7 +1476,9 @@ export default function DashboardPage() {
                             className={`px-2 py-1 hover:bg-purple-200 transition-colors cursor-pointer`}
                             onClick={() => {
                               setSelectedItem(item);
+                              setTransactions([]);
                               setDetailModalOpen(true);
+                              fetchTransactions(item.id);
                             }}
                           >
                             <div className="flex items-center text-xs gap-2">
@@ -1488,6 +1699,8 @@ export default function DashboardPage() {
           handleCloseModal();
         }}
         mode={editingAsset ? "edit" : "add"}
+        folders={folders}
+        portfolio={portfolio}
         initialData={editingAsset || undefined}
       />
 
@@ -1692,32 +1905,187 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  onClick={() => {
-                    handleEditAsset(selectedItem);
-                    setDetailModalOpen(false);
-                  }}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all"
-                >
-                  <Icon icon="solar:pen-bold-duotone" className="w-5 h-5" />
-                  {language === "th" ? "แก้ไข" : "Edit"}
-                </button>
-                <button
-                  onClick={() => {
-                    setDetailModalOpen(false);
-                    handleDeleteAsset(selectedItem.id);
-                  }}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all"
-                >
-                  <Icon
-                    icon="solar:trash-bin-trash-bold-duotone"
-                    className="w-5 h-5"
-                  />
-                  {language === "th" ? "ลบ" : "Delete"}
-                </button>
+              {/* Transaction History */}
+              <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                  <Icon icon="solar:history-bold-duotone" className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-bold text-gray-800">
+                    {language === "th" ? "ประวัติรายการ" : "Transaction History"}
+                  </span>
+                </div>
+                {transactionsLoading ? (
+                  <div className="p-4 text-center text-xs text-gray-400">
+                    <Icon icon="hugeicons:refresh-03" className="w-5 h-5 animate-spin mx-auto mb-1 text-purple-400" />
+                    {language === "th" ? "กำลังโหลด..." : "Loading..."}
+                  </div>
+                ) : transactions.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-gray-400">
+                    {language === "th" ? "ไม่มีประวัติรายการ" : "No transactions yet"}
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100 max-h-52 overflow-y-auto">
+                    {transactions.map((txn) => {
+                      const date = new Date(txn.transactionDate);
+                      const dateStr = date.toLocaleDateString("th-TH", { day: "2-digit", month: "short", year: "2-digit" });
+                      const isBuy = txn.type === "buy";
+                      return (
+                        <div key={txn.id} className="px-4 py-2.5 flex items-center gap-3">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isBuy ? "bg-green-100" : "bg-red-100"}`}>
+                            <Icon
+                              icon={isBuy ? "solar:arrow-down-bold-duotone" : "solar:arrow-up-bold-duotone"}
+                              className={`w-4 h-4 ${isBuy ? "text-green-600" : "text-red-600"}`}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-xs font-bold ${isBuy ? "text-green-700" : "text-red-700"}`}>
+                                {isBuy ? (language === "th" ? "ซื้อ" : "Buy") : (language === "th" ? "ขาย" : "Sell")}
+                              </span>
+                              <span className="text-xs text-gray-500">{dateStr}</span>
+                            </div>
+                            <div className="text-xs text-gray-600 flex gap-2 mt-0.5">
+                              <span>{txn.quantity.toLocaleString(undefined, { maximumFractionDigits: 4 })} หน่วย</span>
+                              <span className="text-gray-400">·</span>
+                              <span>฿{txn.pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 4 })}/หน่วย</span>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className={`text-xs font-bold ${isBuy ? "text-green-700" : "text-red-700"}`}>
+                              {isBuy ? "-" : "+"}฿{txn.totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false);
+                    setIsModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl font-semibold transition-all text-sm"
+                >
+                  <Icon icon="solar:add-circle-bold-duotone" className="w-4 h-4" />
+                  {language === "th" ? "เพิ่มรายการ (ซื้อ/ขาย)" : "Add Transaction"}
+                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      handleEditAsset(selectedItem);
+                      setDetailModalOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all"
+                  >
+                    <Icon icon="solar:pen-bold-duotone" className="w-5 h-5" />
+                    {language === "th" ? "แก้ไข" : "Edit"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDetailModalOpen(false);
+                      handleDeleteAsset(selectedItem.id);
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all"
+                  >
+                    <Icon
+                      icon="solar:trash-bin-trash-bold-duotone"
+                      className="w-5 h-5"
+                    />
+                    {language === "th" ? "ลบ" : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Folder Create/Edit Modal */}
+      {folderModalOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            onClick={() => setFolderModalOpen(false)}
+          />
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl z-50 max-w-sm mx-auto animate-scale-in">
+            <div className="p-5 border-b border-purple-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Icon icon="solar:folder-bold-duotone" className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="font-bold text-gray-900">
+                  {folderModalMode === "create" ? t.createFolder : t.editFolder}
+                </h3>
+              </div>
+              <button
+                onClick={() => setFolderModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+              >
+                <Icon icon="solar:close-circle-bold" className="w-8 h-8 text-purple-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {t.folderName}
+                </label>
+                <input
+                  type="text"
+                  value={folderName}
+                  onChange={(e) => setFolderName(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all text-sm"
+                  placeholder={language === "th" ? "ชื่อโฟลเดอร์..." : "Folder name..."}
+                  maxLength={100}
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveFolder(); }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {t.folderColor}
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {["purple", "pink", "blue", "green", "orange", "red", "yellow"].map((color) => {
+                    const colorMap: Record<string, string> = {
+                      purple: "bg-purple-500",
+                      pink: "bg-pink-500",
+                      blue: "bg-blue-500",
+                      green: "bg-green-500",
+                      orange: "bg-orange-500",
+                      red: "bg-red-500",
+                      yellow: "bg-yellow-500",
+                    };
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setFolderColor(color)}
+                        className={`w-8 h-8 rounded-full ${colorMap[color]} transition-all cursor-pointer ${
+                          folderColor === color ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : "opacity-70 hover:opacity-100"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+              <button
+                onClick={handleSaveFolder}
+                disabled={folderSaving || !folderName.trim()}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {folderSaving ? (
+                  <Icon icon="hugeicons:refresh-03" className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Icon icon="solar:check-circle-bold-duotone" className="w-4 h-4" />
+                )}
+                {folderModalMode === "create"
+                  ? (language === "th" ? "สร้าง" : "Create")
+                  : (language === "th" ? "บันทึก" : "Save")}
+              </button>
             </div>
           </div>
         </>

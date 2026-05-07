@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, doublePrecision, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, doublePrecision, varchar, integer } from 'drizzle-orm/pg-core';
 
 // Asset Management Companies (บลจ.)
 export const amcs = pgTable('amcs', {
@@ -138,6 +138,7 @@ export const userPortfolio = pgTable('user_portfolio', {
   totalCost: doublePrecision('total_cost').notNull(), // มูลค่าทุนรวม
   
   notes: text('notes'), // หมายเหตุ
+  folderId: varchar('folder_id', { length: 255 }), // โฟลเดอร์ (optional)
   
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -145,3 +146,37 @@ export const userPortfolio = pgTable('user_portfolio', {
 
 export type UserPortfolio = typeof userPortfolio.$inferSelect;
 export type NewUserPortfolio = typeof userPortfolio.$inferInsert;
+
+// Portfolio Folders (โฟลเดอร์แยกกลุ่ม asset)
+export const portfolioFolders = pgTable('portfolio_folders', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 100 }).notNull(),
+  color: varchar('color', { length: 50 }).notNull().default('purple'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type PortfolioFolder = typeof portfolioFolders.$inferSelect;
+export type NewPortfolioFolder = typeof portfolioFolders.$inferInsert;
+
+// Portfolio Transactions (ประวัติซื้อ-ขาย)
+export const portfolioTransactions = pgTable('portfolio_transactions', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  portfolioId: varchar('portfolio_id', { length: 255 }), // nullable – links to userPortfolio
+  assetType: varchar('asset_type', { length: 20 }).notNull(),
+  assetId: varchar('asset_id', { length: 255 }).notNull(),
+  assetName: text('asset_name').notNull(),
+  type: varchar('type', { length: 10 }).notNull().default('buy'), // 'buy' | 'sell'
+  quantity: doublePrecision('quantity').notNull(),
+  pricePerUnit: doublePrecision('price_per_unit').notNull(),
+  totalAmount: doublePrecision('total_amount').notNull(),
+  transactionDate: timestamp('transaction_date').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type PortfolioTransaction = typeof portfolioTransactions.$inferSelect;
+export type NewPortfolioTransaction = typeof portfolioTransactions.$inferInsert;

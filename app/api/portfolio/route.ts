@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { userPortfolio, funds, stocks, cryptos } from '@/lib/db/schema';
+import { userPortfolio, funds, stocks, cryptos, portfolioTransactions } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - เพิ่ม asset ใหม่
+// POST - เพิ่ม asset ใหม่ (buy) หรือบันทึกการขาย (sell)
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
@@ -110,9 +110,76 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     const body = await request.json();
-    const { assetType, assetId, assetName, quantity, avgBuyPrice, notes } = body;
+    const { type = 'buy', assetType, assetId, assetName, quantity, avgBuyPrice, notes, folderId, transactionDate, portfolioId, pricePerUnit, totalAmount } = body;
 
-    // Validate input
+    if (quantity <= 0) {
+      return NextResponse.json({ success: false, error: 'Quantity must be greater than 0' }, { status: 400 });
+    }
+
+    // ---- SELL flow ----
+    if (type === 'sell') {
+      if (!portfolioId || !pricePerUnit) {
+        return NextResponse.json({ success: false, error: 'Missing portfolioId or pricePerUnit for sell' }, { status: 400 });
+      }
+
+      // Find and verify ownership of the portfolio entry
+      const [entry] = await db
+        .select()
+        .from(userPortfolio)
+        .where(and(eq(userPortfolio.id, portfolioId), eq(userPortfolio.userId, session.userId)));
+
+      if (!entry) {
+        return NextResponse.json({ success: false, error: 'Asset not found in portfolio' }, { status: 404 });
+      }
+
+      // Precision-safe comparison: round to 8 decimals
+      const availableQty = Math.round(entry.quantity * 1e8) / 1e8;
+      const sellQty = Math.round(quantity * 1e8) / 1e8;
+
+      if (sellQty > availableQty) {
+        return NextResponse.json(
+          { success: false, error: `ขายได้สูงสุด ${availableQty.toLocaleString(undefined, { maximumFractionDigits: 5 })} หน่วย` },
+          { status: 400 }
+        );
+      }
+
+      const sellTotal = totalAmount ?? quantity * pricePerUnit;
+
+      if (sellQty >= availableQty) {
+        // Selling all units → remove portfolio entry
+        await db.delete(userPortfolio).where(eq(userPortfolio.id, portfolioId));
+      } else {
+        // Partial sell → reduce quantity, keep same avgBuyPrice
+        const newQty = availableQty - sellQty;
+        const newTotalCost = newQty * entry.avgBuyPrice;
+        await db.update(userPortfolio).set({
+          quantity: newQty,
+          totalCost: newTotalCost,
+          updatedAt: new Date(),
+        }).where(eq(userPortfolio.id, portfolioId));
+      }
+
+      // Record sell transaction
+      const txnId = `txn_${session.userId}_${Date.now()}`;
+      await db.insert(portfolioTransactions).values({
+        id: txnId,
+        userId: session.userId,
+        portfolioId,
+        assetType: entry.assetType,
+        assetId: entry.assetId,
+        assetName: entry.assetName,
+        type: 'sell',
+        quantity,
+        pricePerUnit,
+        totalAmount: sellTotal,
+        transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
+        notes: notes || null,
+      });
+
+      return NextResponse.json({ success: true, message: 'บันทึกการขายสำเร็จ' });
+    }
+
+    // ---- BUY flow ----
     if (!assetType || !assetId || !assetName || !quantity || !avgBuyPrice) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
@@ -120,7 +187,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (quantity <= 0 || avgBuyPrice <= 0) {
+    if (avgBuyPrice <= 0) {
       return NextResponse.json(
         { success: false, error: 'Quantity and price must be greater than 0' },
         { status: 400 }
@@ -140,6 +207,24 @@ export async function POST(request: NextRequest) {
       quantity,
       avgBuyPrice,
       totalCost,
+      notes: notes || null,
+      folderId: folderId || null,
+    });
+
+    // Auto-record the initial buy transaction
+    const txnId = `txn_${session.userId}_${Date.now()}`;
+    await db.insert(portfolioTransactions).values({
+      id: txnId,
+      userId: session.userId,
+      portfolioId: id,
+      assetType,
+      assetId,
+      assetName,
+      type: 'buy',
+      quantity,
+      pricePerUnit: avgBuyPrice,
+      totalAmount: totalCost,
+      transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
       notes: notes || null,
     });
 
@@ -207,7 +292,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, quantity, avgBuyPrice, notes } = body;
+    const { id, quantity, avgBuyPrice, notes, folderId } = body;
 
     // Validate input
     if (!id) {
@@ -241,6 +326,7 @@ export async function PUT(request: NextRequest) {
         avgBuyPrice,
         totalCost,
         notes: notes || null,
+        folderId: folderId !== undefined ? (folderId || null) : undefined,
         updatedAt: new Date(),
       })
       .where(
